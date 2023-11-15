@@ -213,7 +213,7 @@ def default_autonomous(*args):
         robot_brain.screen.new_line()
         robot_brain.screen.print(drivetrain_inertial_sensor.heading())
         robot_drivetrain.turn_to_heading(drivetrain_inertial_sensor.heading() + target_angle, DEGREES)
-        robot_drivetrain.drive_for(FORWARD, target_distance, MM)
+        robot_drivetrain.drive_for(FORWARD, target_distance / 1000, MM)
         index += 1
 
     
