@@ -203,7 +203,6 @@ starting_pos = determine_starting_point(starting_pos_x, starting_pos_y)
     
 #region Autonomous
 def default_autonomous(*args):
-    global starting_angle, starting_pos_x, starting_pos_y
     index = 0
     robot_drivetrain.set_drive_velocity(25, PERCENT)
     for array in args:
