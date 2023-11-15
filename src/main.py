@@ -1,4 +1,5 @@
 #region Configuration
+from vex import LEFT, RIGHT, FORWARD, MM, PERCENT
 from vex import *
 
 # Initialize the robot brain
@@ -149,7 +150,7 @@ def calculate_angle_between_points(x2: int, x1: int, y2: int, y1: int, starting_
     return convert_in_range_angle_to_degrees
 
 
-def calculate_distance_between_points_in_ft(x2: int, x1: int, y2: int, y1: int):
+def calculate_distance_between_points_in_meters(x2: int, x1: int, y2: int, y1: int):
 
     delta_of_x = x2 - x1
     delta_of_y = y2 - y1
@@ -163,16 +164,16 @@ def determine_starting_point(x: int, y: int):
 
     starting_point = "err: Starting position unable to be determined"
 
-    if x < 3 and y < 3:
+    if x < 0 and y < 0 :
         starting_point = "blue_offensive_red_team"
         robot_brain.screen.print("blue_offensive_red_team")
-    elif x > 3 and y < 3:
+    elif x > 0 and y < 0:
         starting_point = "red_offensive_red_team"
         robot_brain.screen.print("red_offensive_red_team")
-    elif x < 3 and y > 3:
+    elif x < 0 and y > 0:
         starting_point = "blue_offensive_blue_team"
         robot_brain.screen.print("blue_offensive_blue_team")
-    elif x < 3 and y > 3:
+    elif x > 0 and y > 0:
         starting_point = "red_offensive_blue_team"
         robot_brain.screen.print("red_offensive_blue_team")
     else:
@@ -185,30 +186,37 @@ def determine_starting_point(x: int, y: int):
 # Initialize veriables
 starting_pos_x = 0
 starting_pos_y = 0
+starting_angle = 0
 
 def pre_autonomous():
-    global starting_pos_x, starting_pos_y
+    global starting_pos_x, starting_pos_y, starting_angle
     
+    drivetrain_inertial_sensor.calibrate()
     # Assuming drivetrain_gps_sensor has been initialized before calling this function
-    starting_pos_x = drivetrain_gps_sensor.x_position(INCHES) / 12
-    starting_pos_y = drivetrain_gps_sensor.y_position(INCHES) / 12
+    starting_pos_x = drivetrain_gps_sensor.x_position(MM) * 1000
+    starting_pos_y = drivetrain_gps_sensor.y_position(MM) * 1000
+
 
 pre_autonomous()
 
 starting_pos = determine_starting_point(starting_pos_x, starting_pos_y)
     
 #region Autonomous
-def default_autonomous():
-    robot_brain.screen.clear_screen()
-    robot_brain.screen.print("autonomous code")
-    robot_drivetrain.set_drive_velocity(50, PERCENT)
-    extra_motor.set_velocity(100, PERCENT)
-    extra_motor.spin_for(FORWARD, 270, DEGREES)
-    robot_drivetrain.drive_for(FORWARD, 55, INCHES)
-    extra_motor.spin_for(REVERSE, 270, DEGREES)
-    robot_drivetrain.set_drive_velocity(100, PERCENT)
-    robot_drivetrain.drive_for(FORWARD, 15, INCHES)
+def default_autonomous(*args):
+    global starting_angle, starting_pos_x, starting_pos_y
+    index = 0
+    robot_drivetrain.set_drive_velocity(25, PERCENT)
+    for array in args:
+        target_angle = calculate_angle_between_points(x2=array[0], x1=starting_pos_x, y2=array[1], y1=starting_pos_y, starting_angle=starting_angle)
+        target_distance = calculate_distance_between_points_in_meters(x2=array[0], x1=starting_pos_x, y2=array[1], y1=starting_pos_y)
+        robot_brain.screen.print(target_angle)
+        robot_brain.screen.new_line()
+        robot_brain.screen.print(drivetrain_inertial_sensor.heading())
+        robot_drivetrain.turn_to_heading(drivetrain_inertial_sensor.heading() + target_angle, DEGREES)
+        robot_drivetrain.drive_for(FORWARD, target_distance, MM)
+        index += 1
 
+    
 def red_offensive_red_team_autonomous():
     pass
 
@@ -226,21 +234,25 @@ def blue_offensive_blue_team_autonomous():
 def user_control(): 
     robot_brain.screen.new_line()
     robot_brain.screen.print("Driver control enabled")
-    robot_brain.screen.new_line()
-    robot_brain.screen.print(starting_pos_x, starting_pos_y)
     robot_drivetrain.set_drive_velocity(100, PERCENT)
     extra_motor.set_velocity(100, PERCENT)
 
 
 # Competition Instances
 
-if starting_pos == "blue_offensive_red_team":
-    comp = Competition(user_control, blue_offensive_red_team_autonomous) 
-elif starting_pos == "blue_offensive_blue_team":
-    comp = Competition(user_control, blue_offensive_blue_team_autonomous)
-elif starting_pos == "red_offensive_red_team":
-    comp = Competition(user_control, red_offensive_red_team_autonomous)
-elif starting_pos == "red_offensive_blue_team":
-    comp = Competition(user_control, red_offensive_blue_team_autonomous)
-else:
-    comp = Competition(user_control, default_autonomous)
+# if starting_pos == "blue_offensive_red_team":
+#     # comp = Competition(user_control, blue_offensive_red_team_autonomous)
+#     comp = Competition(user_control, default_autonomous) 
+# elif starting_pos == "blue_offensive_blue_team":
+#     # comp = Competition(user_control, blue_offensive_blue_team_autonomous)
+#     comp = Competition(user_control, default_autonomous)
+# elif starting_pos == "red_offensive_red_team":
+#     # comp = Competition(user_control, red_offensive_red_team_autonomous)
+#     comp = Competition(user_control, default_autonomous)
+# elif starting_pos == "red_offensive_blue_team":
+#     # comp = Competition(user_control, red_offensive_blue_team_autonomous)
+#     comp = Competition(user_control, default_autonomous)
+# else:
+#     comp = Competition(user_control, default_autonomous)
+
+comp = Competition(user_control, default_autonomous([0, 0]))

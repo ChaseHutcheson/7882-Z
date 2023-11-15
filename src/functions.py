@@ -1,6 +1,6 @@
 import math
 
-def calculate_angle_between_points(x2: int, x1: int, y2: int, y1: int, starting_angle: float):
+def calculate_angle_between_points(x2: float, x1: float, y2: float, y1: float, starting_angle: float):
     '''### Determines the angle the robot needs to turn in order to face the target point
 
             #### Arguments:
@@ -26,7 +26,7 @@ def calculate_angle_between_points(x2: int, x1: int, y2: int, y1: int, starting_
     return convert_in_range_angle_to_degrees
 
 
-def calculate_distance_between_points_in_ft(x2: int, x1: int, y2: int, y1: int):
+def calculate_distance_between_points_in_meters(x2: float, x1: float, y2: float, y1: float):
     '''### Determines the distance in ft of 2 between a starting point and target point
 
             #### Arguments:
