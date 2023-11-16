@@ -1,5 +1,4 @@
 #region Configuration
-from vex import LEFT, RIGHT, FORWARD, MM, PERCENT
 from vex import *
 
 # Initialize the robot brain
@@ -137,27 +136,19 @@ from vex import *
 import math
 
 def calculate_angle_between_points(x2: int, x1: int, y2: int, y1: int, starting_angle: float):
-
     delta_of_x = x2 - x1
     delta_of_y = y2 - y1
-
     angle_to_turn_in_radians = math.atan2(delta_of_y, delta_of_x) - math.radians(starting_angle)
-
     make_angle_to_turns_result_in_range = (angle_to_turn_in_radians + math.pi) % (2 * math.pi) - math.pi
-
     convert_in_range_angle_to_degrees = math.degrees(make_angle_to_turns_result_in_range)
-
     return convert_in_range_angle_to_degrees
 
-
 def calculate_distance_between_points_in_meters(x2: int, x1: int, y2: int, y1: int):
-
     delta_of_x = x2 - x1
     delta_of_y = y2 - y1
+    distance_between_points_in_meters = math.sqrt((delta_of_x**2) + (delta_of_y**2))
 
-    distance_between_points_in_ft = math.sqrt((delta_of_x**2) + (delta_of_y**2)) * 2
-
-    return distance_between_points_in_ft
+    return distance_between_points_in_meters
 
 
 def determine_starting_point(x: int, y: int):
@@ -195,6 +186,7 @@ def pre_autonomous():
     # Assuming drivetrain_gps_sensor has been initialized before calling this function
     starting_pos_x = drivetrain_gps_sensor.x_position(MM) * 1000
     starting_pos_y = drivetrain_gps_sensor.y_position(MM) * 1000
+    starting_angle = drivetrain_gps_sensor.heading(DEGREES)
 
 
 pre_autonomous()
@@ -202,17 +194,30 @@ pre_autonomous()
 starting_pos = determine_starting_point(starting_pos_x, starting_pos_y)
     
 #region Autonomous
-def default_autonomous(*args):
+def default_autonomous(starting_pos_x, starting_pos_y, starting_angle, *args):
     index = 0
+    robot_x = starting_pos_x
+    robot_y = starting_pos_y
+    robot_heading = starting_angle
+
     robot_drivetrain.set_drive_velocity(25, PERCENT)
+    
     for array in args:
-        target_angle = calculate_angle_between_points(x2=array[0], x1=starting_pos_x, y2=array[1], y1=starting_pos_y, starting_angle=starting_angle)
-        target_distance = calculate_distance_between_points_in_meters(x2=array[0], x1=starting_pos_x, y2=array[1], y1=starting_pos_y)
-        robot_brain.screen.print(target_angle)
-        robot_brain.screen.new_line()
-        robot_brain.screen.print(drivetrain_inertial_sensor.heading())
-        robot_drivetrain.turn_to_heading(drivetrain_inertial_sensor.heading() + target_angle, DEGREES)
-        robot_drivetrain.drive_for(FORWARD, target_distance / 1000, MM)
+        # Calculate the angle and distance to the target point
+        target_angle = calculate_angle_between_points(x2=array[0], x1=robot_x, y2=array[1], y1=robot_y, starting_angle=robot_heading)
+        target_distance = calculate_distance_between_points_in_meters(x2=array[0], x1=robot_x, y2=array[1], y1=robot_y)
+        
+        # Turn the robot to face the target point
+        robot_drivetrain.turn_to_heading(robot_heading + target_angle, DEGREES)
+        
+        # Drive towards the target point
+        robot_drivetrain.drive_for(FORWARD, target_distance, MM)
+        
+        # Update the robot's position and heading
+        robot_x = array[0]
+        robot_y = array[1]
+        robot_heading += target_angle
+
         index += 1
 
     
@@ -254,4 +259,4 @@ def user_control():
 # else:
 #     comp = Competition(user_control, default_autonomous)
 
-comp = Competition(user_control, default_autonomous([0, 0]))
+comp = Competition(user_control, default_autonomous(starting_pos_x, starting_pos_y, starting_angle, [0, 0]))

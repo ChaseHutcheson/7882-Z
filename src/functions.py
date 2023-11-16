@@ -1,51 +1,20 @@
 import math
 
-def calculate_angle_between_points(x2: float, x1: float, y2: float, y1: float, starting_angle: float):
-    '''### Determines the angle the robot needs to turn in order to face the target point
-
-            #### Arguments:
-                x1: X value of starting coordinate.
-                y1: Y value of starting coordinate.
-                x2: X value of target coordinate.
-                y2: Y value of target coordinate.
-                starting angle: Angle the robot is currently facing
-
-            #### Returns:
-                float value of the angle. Ex. 107.00000000000001
-    '''
-
+def calculate_angle_between_points(x2: int, x1: int, y2: int, y1: int, starting_angle: float):
     delta_of_x = x2 - x1
     delta_of_y = y2 - y1
-
-    angle_to_turn_in_radians = math.atan2(delta_of_y, delta_of_x) - math.radians(starting_angle)
-
-    make_angle_to_turns_result_in_range = (angle_to_turn_in_radians + math.pi) % (2 * math.pi) - math.pi
-
-    convert_in_range_angle_to_degrees = math.degrees(make_angle_to_turns_result_in_range)
-
+    angle_to_turn_in_radians = math.atan2(delta_of_y, delta_of_x)
+    angle_to_turn_in_radians = (angle_to_turn_in_radians - math.radians(starting_angle) + math.pi) % (2 * math.pi) - math.pi
+    convert_in_range_angle_to_degrees = math.degrees(angle_to_turn_in_radians)
     return convert_in_range_angle_to_degrees
 
 
-def calculate_distance_between_points_in_meters(x2: float, x1: float, y2: float, y1: float):
-    '''### Determines the distance in ft of 2 between a starting point and target point
-
-            #### Arguments:
-                x1: X value of starting coordinate.
-                y1: Y value of starting coordinate.
-                x2: X value of target coordinate.
-                y2: Y value of target coordinate.
-
-            #### Returns:
-                float value of the distance. Ex. 5.0
-    '''
-
+def calculate_distance_between_points_in_meters(x2: int, x1: int, y2: int, y1: int):
     delta_of_x = x2 - x1
     delta_of_y = y2 - y1
+    distance_between_points_in_meters = math.sqrt((delta_of_x**2) + (delta_of_y**2))
 
-    distance_between_points_in_ft = math.sqrt((delta_of_x**2) + (delta_of_y**2)) * 2
-
-    return distance_between_points_in_ft
-
+    return distance_between_points_in_meters
 
 def determine_starting_point(x: int, y: int):
     '''### Determines the team and offensive zone the robot starts in.
